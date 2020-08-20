@@ -14,6 +14,8 @@ knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
 # Load the ggplot2 package used to graph the data
 library(ggplot2)
+# Code to format ggplot2 axes
+library(scales)
 
 # Read the csv data and store it as a tables
 download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2","stormdata.scv.bz2")
@@ -22,16 +24,29 @@ stormDataTable <- as_tibble(stormData, stringsAsFactors = FALSE)
 rm("stormData")
 stormDataTable$BGN_DATE_DTM <- as.Date(substr(stormDataTable$BGN_DATE,1,which(strsplit(stormDataTable$BGN_DATE, "")[[1]]==" ")), format='%m/%d/%Y')
 
+# Get events since 2000 because the data is more complete
 stormDataTableSince2000 <- stormDataTable %>% filter(BGN_DATE_DTM >= "2000-01-01")
 
+# Get the property damage dollars per event
 stormDataTableSince2000$PRODMGMULTIPLYER <- ifelse(stormDataTableSince2000$PROPDMGEXP=="K",1000,ifelse(stormDataTableSince2000$PROPDMGEXP=="M",1000000,ifelse(stormDataTableSince2000$PROPDMGEXP=="B",1000000000,1)))
 stormDataTableSince2000$PROPDMGALL <- stormDataTableSince2000$PRODMGMULTIPLYER * stormDataTableSince2000$PROPDMG
 
+# Get the crop damage dollars per event
 stormDataTableSince2000$CROPDMGMULTIPLYER <- ifelse(stormDataTableSince2000$CROPDMGEXP=="K",1000,ifelse(stormDataTableSince2000$CROPDMGEXP=="M",1000000,ifelse(stormDataTableSince2000$CROPDMGEXP=="B",1000000000,1)))
 stormDataTableSince2000$CROPDMGALL <- stormDataTableSince2000$CROPDMGMULTIPLYER * stormDataTableSince2000$PROPDMG
 
+# Summarize all dollars per event
+stormDataTableSince2000$DMGALL <- stormDataTableSince2000$CROPDMGALL + stormDataTableSince2000$PROPDMGALL
+
 # Summarize the impact by event type
-healthImpact <- stormDataTable %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES))
+stormDataSummaryTopFatalities <- stormDataTableSince2000 %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES), DAMAGE = sum(DMGALL)) %>% slice_max(order_by = FATALITIES, n = 10)
 
 # Summarize the impact by economics
+stormDataSummaryTopDollars <- stormDataTableSince2000 %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES), DAMAGE = sum(DMGALL)) %>% slice_max(order_by = DAMAGE, n = 10)
+
+# Plot the results for impact on lives
+ggplot(data=stormDataSummaryTopFatalities, aes(x=reorder(EVTYPE, FATALITIES), y=FATALITIES), group=1) + labs(x="Event Type", y="Fatalities") + geom_bar(stat="identity") + coord_flip()
+
+# Plot the results for impact on economics
+ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Economic Damage (Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma)
 ```
