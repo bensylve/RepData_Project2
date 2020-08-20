@@ -42,11 +42,11 @@ stormDataTableSince2000$DMGALL <- stormDataTableSince2000$CROPDMGALL + stormData
 stormDataSummaryTopFatalities <- stormDataTableSince2000 %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES), DAMAGE = sum(DMGALL)) %>% slice_max(order_by = FATALITIES, n = 10)
 
 # Summarize the impact by economics
-stormDataSummaryTopDollars <- stormDataTableSince2000 %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES), DAMAGE = sum(DMGALL)) %>% slice_max(order_by = DAMAGE, n = 10)
+stormDataSummaryTopDollars <- stormDataTableSince2000 %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES), DAMAGE = sum(DMGALL)/1000000000) %>% slice_max(order_by = DAMAGE, n = 10)
 
 # Plot the results for impact on lives
 ggplot(data=stormDataSummaryTopFatalities, aes(x=reorder(EVTYPE, FATALITIES), y=FATALITIES), group=1) + labs(x="Event Type", y="Fatalities") + geom_bar(stat="identity") + coord_flip()
 
 # Plot the results for impact on economics
-ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Economic Damage (Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma)
+ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Economic Damage (Billions Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma)
 ```
