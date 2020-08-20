@@ -11,19 +11,23 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Synosis
 
-This analysis is intended to provide an overview of the impact of sever weather events in the United States. Impact was assessed by looking at the impact on population health and economic consequences. Population health was assessed by reviewing the number of fatalities per weather event type while economic consequences was assessed by reviewing the combined property and crop damage cost. The top 10 event types for number of fatalities and economic consequences since the year 2000 are provided in the figures to follow. More recent data was chosen to reflect more recent weather patterns and to take advantage of the completeness of recent data sets.
+This analysis is intended to provide an overview of the impact of sever weather events in the United States. Impact was assessed by looking at the impact on population health and economic consequences. Population health was assessed by reviewing the number of fatalities per weather event type while economic consequences was assessed by reviewing the combined property and crop damage cost. The top 10 event types since the year 2000 for number of fatalities and economic consequences are provided in the figures to follow. More recent data was chosen to reflect recent weather patterns and to take advantage of the completeness of recent data sets.
 
 ## Data Processing
 
 Data processesing occurs in the following manner:
 
 1 - Download the storm data from the web
+
 2 - Reduce the dataset to focus on the year 2000 and later
+
 3 - Calculate the dollars per event for crop and property damage
+
 4 - Summarize the top 10 event types by fatality count
+
 5 - Summarize the top 10 event types by combined crop and property damage
 
-```{r}
+```{r cache=TRUE}
 # Load the dplyr package used to summarize the data
 library(dplyr)
 # Load the ggplot2 package used to graph the data
@@ -39,7 +43,9 @@ stormData <- read.csv("stormdata.scv.bz2", stringsAsFactors = FALSE)
 stormDataTable <- as_tibble(stormData, stringsAsFactors = FALSE)
 rm("stormData")
 stormDataTable$BGN_DATE_DTM <- as.Date(substr(stormDataTable$BGN_DATE,1,which(strsplit(stormDataTable$BGN_DATE, "")[[1]]==" ")), format='%m/%d/%Y')
+```
 
+```{r}
 # STEP 2
 
 # Get events since 2000 because the data is more complete
@@ -82,5 +88,5 @@ Floods have the most economic consequences.
 
 ```{r}
 # Plot the results for impact on economics
-ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Economic Damage (Billions Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma) + ggtitle("Severe Weather Event Economic Consequences \n Top 10 Events by Combined Property and Crop Damage")
+ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Damage (Billions Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma) + ggtitle("Severe Weather Event Economic Consequences \n Top 10 Events by Combined Property and Crop Damage")
 ```
