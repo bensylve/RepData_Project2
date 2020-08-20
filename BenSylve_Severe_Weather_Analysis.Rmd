@@ -1,0 +1,37 @@
+---
+title: "Impact of Severe Weather Events in the United States"
+author: "Ben Sylve"
+date: "8/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Load the dplyr package used to summarize the data
+library(dplyr)
+# Load the ggplot2 package used to graph the data
+library(ggplot2)
+
+# Read the csv data and store it as a tables
+download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2","stormdata.scv.bz2")
+stormData <- read.csv("stormdata.scv.bz2", stringsAsFactors = FALSE)
+stormDataTable <- as_tibble(stormData, stringsAsFactors = FALSE)
+rm("stormData")
+stormDataTable$BGN_DATE_DTM <- as.Date(substr(stormDataTable$BGN_DATE,1,which(strsplit(stormDataTable$BGN_DATE, "")[[1]]==" ")), format='%m/%d/%Y')
+
+stormDataTableSince2000 <- stormDataTable %>% filter(BGN_DATE_DTM >= "2000-01-01")
+
+stormDataTableSince2000$PRODMGMULTIPLYER <- ifelse(stormDataTableSince2000$PROPDMGEXP=="K",1000,ifelse(stormDataTableSince2000$PROPDMGEXP=="M",1000000,ifelse(stormDataTableSince2000$PROPDMGEXP=="B",1000000000,1)))
+stormDataTableSince2000$PROPDMGALL <- stormDataTableSince2000$PRODMGMULTIPLYER * stormDataTableSince2000$PROPDMG
+
+stormDataTableSince2000$CROPDMGMULTIPLYER <- ifelse(stormDataTableSince2000$CROPDMGEXP=="K",1000,ifelse(stormDataTableSince2000$CROPDMGEXP=="M",1000000,ifelse(stormDataTableSince2000$CROPDMGEXP=="B",1000000000,1)))
+stormDataTableSince2000$CROPDMGALL <- stormDataTableSince2000$CROPDMGMULTIPLYER * stormDataTableSince2000$PROPDMG
+
+# Summarize the impact by event type
+healthImpact <- stormDataTable %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES))
+
+# Summarize the impact by economics
+```
