@@ -9,6 +9,20 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Synosis
+
+This analysis is intended to provide an overview of the impact of sever weather events in the United States. Impact was assessed by looking at the impact on population health and economic consequences. Population health was assessed by reviewing the number of fatalities per weather event type while economic consequences was assessed by reviewing the combined property and crop damage cost. The top 10 event types for number of fatalities and economic consequences since the year 2000 are provided in the figures to follow. More recent data was chosen to reflect more recent weather patterns and to take advantage of the completeness of recent data sets.
+
+## Data Processing
+
+Data processesing occurs in the following manner:
+
+1 - Download the storm data from the web
+2 - Reduce the dataset to focus on the year 2000 and later
+3 - Calculate the dollars per event for crop and property damage
+4 - Summarize the top 10 event types by fatality count
+5 - Summarize the top 10 event types by combined crop and property damage
+
 ```{r}
 # Load the dplyr package used to summarize the data
 library(dplyr)
@@ -17,6 +31,8 @@ library(ggplot2)
 # Code to format ggplot2 axes
 library(scales)
 
+# STEP 1
+
 # Read the csv data and store it as a tables
 download.file("https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2","stormdata.scv.bz2")
 stormData <- read.csv("stormdata.scv.bz2", stringsAsFactors = FALSE)
@@ -24,8 +40,12 @@ stormDataTable <- as_tibble(stormData, stringsAsFactors = FALSE)
 rm("stormData")
 stormDataTable$BGN_DATE_DTM <- as.Date(substr(stormDataTable$BGN_DATE,1,which(strsplit(stormDataTable$BGN_DATE, "")[[1]]==" ")), format='%m/%d/%Y')
 
+# STEP 2
+
 # Get events since 2000 because the data is more complete
 stormDataTableSince2000 <- stormDataTable %>% filter(BGN_DATE_DTM >= "2000-01-01")
+
+# STEP 3
 
 # Get the property damage dollars per event
 stormDataTableSince2000$PRODMGMULTIPLYER <- ifelse(stormDataTableSince2000$PROPDMGEXP=="K",1000,ifelse(stormDataTableSince2000$PROPDMGEXP=="M",1000000,ifelse(stormDataTableSince2000$PROPDMGEXP=="B",1000000000,1)))
@@ -38,15 +58,29 @@ stormDataTableSince2000$CROPDMGALL <- stormDataTableSince2000$CROPDMGMULTIPLYER 
 # Summarize all dollars per event
 stormDataTableSince2000$DMGALL <- stormDataTableSince2000$CROPDMGALL + stormDataTableSince2000$PROPDMGALL
 
+# STEP 4
+
 # Summarize the impact by event type
 stormDataSummaryTopFatalities <- stormDataTableSince2000 %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES), DAMAGE = sum(DMGALL)) %>% slice_max(order_by = FATALITIES, n = 10)
 
+# STEP 5
+
 # Summarize the impact by economics
 stormDataSummaryTopDollars <- stormDataTableSince2000 %>% group_by(EVTYPE) %>% summarize(FATALITIES = sum(FATALITIES), INJURIES = sum(INJURIES), DAMAGE = sum(DMGALL)/1000000000) %>% slice_max(order_by = DAMAGE, n = 10)
+```
 
+## Results
+
+Tornadoes have the most impact on population health in terms of fatalities.
+
+```{r}
 # Plot the results for impact on lives
-ggplot(data=stormDataSummaryTopFatalities, aes(x=reorder(EVTYPE, FATALITIES), y=FATALITIES), group=1) + labs(x="Event Type", y="Fatalities") + geom_bar(stat="identity") + coord_flip()
+ggplot(data=stormDataSummaryTopFatalities, aes(x=reorder(EVTYPE, FATALITIES), y=FATALITIES), group=1) + labs(x="Event Type", y="Fatalities") + geom_bar(stat="identity") + coord_flip() + ggtitle("Severe Weather Event Population Health Impact \n Top 10 Events by Fatality Count")
+```
 
+Floods have the most economic consequences.
+
+```{r}
 # Plot the results for impact on economics
-ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Economic Damage (Billions Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma)
+ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Economic Damage (Billions Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma) + ggtitle("Severe Weather Event Economic Consequences \n Top 10 Events by Combined Property and Crop Damage")
 ```
