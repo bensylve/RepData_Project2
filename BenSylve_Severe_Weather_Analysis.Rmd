@@ -27,14 +27,16 @@ Data processesing occurs in the following manner:
 
 5 - Summarize the top 10 event types by combined crop and property damage
 
-```{r cache=TRUE}
+```{r}
 # Load the dplyr package used to summarize the data
 library(dplyr)
 # Load the ggplot2 package used to graph the data
 library(ggplot2)
 # Code to format ggplot2 axes
 library(scales)
+```
 
+```{r cache=TRUE}
 # STEP 1
 
 # Read the csv data and store it as a tables
@@ -81,12 +83,12 @@ Tornadoes have the most impact on population health in terms of fatalities.
 
 ```{r}
 # Plot the results for impact on lives
-ggplot(data=stormDataSummaryTopFatalities, aes(x=reorder(EVTYPE, FATALITIES), y=FATALITIES), group=1) + labs(x="Event Type", y="Fatalities") + geom_bar(stat="identity") + coord_flip() + ggtitle("Severe Weather Event Population Health Impact \n Top 10 Events by Fatality Count")
+ggplot(data=stormDataSummaryTopFatalities, aes(x=reorder(EVTYPE, FATALITIES), y=FATALITIES), group=1) + labs(x="Event Type", y="Fatalities") + geom_bar(stat="identity") + coord_flip() + ggtitle("Population Health Impact Since 2000 \n Top 10 Events by Fatality Count")
 ```
 
 Floods have the most economic consequences.
 
 ```{r}
 # Plot the results for impact on economics
-ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Damage (Billions Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma) + ggtitle("Severe Weather Event Economic Consequences \n Top 10 Events by Combined Property and Crop Damage")
+ggplot(data=stormDataSummaryTopDollars, aes(x=reorder(EVTYPE, DAMAGE), y=DAMAGE), group=1) + labs(x="Event Type", y="Damage (Billions Dollars)") + geom_bar(stat="identity") + coord_flip() + scale_y_continuous(labels=comma) + ggtitle("Economic Consequences Since 2000 \n Top 10 Events by Combined Property and Crop Damage")
 ```
